@@ -7,15 +7,20 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     // หัวข้อ 2.10 Config & Environment Variable: ใช้โหลดตัวแปรจากไฟล์ .env
     ConfigModule.forRoot({ isGlobal: true }),
+    // หัวข้อ 3.3 Event-Driven: เปิดใช้งานระบบ Event 
+    EventEmitterModule.forRoot(),
     TasksModule, 
     UsersModule, 
     PrismaModule, // นำแผนก Tasks เข้ามาเชื่อมต่อ (หัวข้อ 1.3)
-    AuthModule,
+    AuthModule, 
+    NotificationsModule,
   ],
   providers: [
     {
