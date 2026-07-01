@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+
+datasource db {
+  provider = "postgresql" // หรือ mysql
+}
+
+// สร้างตารางชื่อ Task
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+
+  // หัวข้อ 2.5 Relation (One-to-Many): Task เป็นของ User 1 คน
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+// หัวข้อ 2.2 Entity (ส่วน Prisma Model): สร้างตารางชื่อ User
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("USER") // หัวข้อ 2.9 Role-based Authorization: ฟิลด์ระบุสิทธิ์
+  
+  // หัวข้อ 2.5 Relation (One-to-Many): User 1 คน มีได้หลาย Task
+  tasks     Task[]
+}
