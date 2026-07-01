@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, ClassSerializerInterceptor, Request } from '@nestjs/common';
+import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,6 +23,10 @@ export class UsersController {
 
   // หัวข้อ 2.7 และ 2.8: ป้องกัน Route ต้องล็อกอินก่อน (มี JWT Token)
   @UseGuards(JwtAuthGuard)
+  // หัวข้อ 3.5 Caching: เปิดแคชสำหรับเส้นนี้ 60 วินาที
+  @UseInterceptors(CacheInterceptor)
+  @CacheKey('all_users')
+  @CacheTTL(60000)
   @Get()
   findAll() {
     return this.usersService.findAll();

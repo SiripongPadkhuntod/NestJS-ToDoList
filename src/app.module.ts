@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MailQueueModule } from './mail-queue/mail-queue.module';
 
@@ -24,6 +26,19 @@ import { MailQueueModule } from './mail-queue/mail-queue.module';
         host: 'localhost',
         port: 6379,
       },
+    }),
+    // หัวข้อ 3.5 Caching - Redis: ตั้งค่าระบบ Cache ให้ทำงานร่วมกับ Redis
+    CacheModule.registerAsync({
+      isGlobal: true, // เปิดให้ใช้ได้ทั้งแอป
+      useFactory: async () => ({
+        store: await redisStore({
+          socket: {
+            host: 'localhost',
+            port: 6379,
+          },
+          ttl: 60000, // แคชไว้ 1 นาที (60 วินาที)
+        }),
+      }),
     }),
     TasksModule, 
     UsersModule, 
