@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,6 +20,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, // ตัดข้อมูลขยะที่ไม่ได้ระบุใน DTO ทิ้งอัตโนมัติ
   }));
+
+  // หัวข้อ 3.1: เปิดใช้งาน Interceptor สำหรับจัดรูปแบบ Response ให้เหมือนกันทั้งแอป
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // Swagger config
   const config = new DocumentBuilder()

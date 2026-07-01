@@ -6,6 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { User } from '../auth/user.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -31,9 +32,9 @@ export class UsersController {
   @Get('me')
   @ApiOperation({ summary: 'ดึงข้อมูลโปรไฟล์ของตัวเอง' })
   @ApiResponse({ status: 200, description: 'คืนค่าข้อมูลผู้ใช้งานที่กำลังล็อกอินอยู่' })
-  getProfile(@Request() req) {
-    // req.user ได้มาจากตอนผ่าน JwtAuthGuard
-    return this.usersService.findOne(req.user.userId);
+  getProfile(@User('userId') userId: number) {
+    // หัวข้อ 3.2: ใช้ Custom Decorator @User() แทน @Request()
+    return this.usersService.findOne(userId);
   }
 
   // หัวข้อ 2.7, 2.8 และ 2.9: ป้องกัน Route + เช็ค Role ว่าต้องเป็น ADMIN ถึงจะดึงดูข้อมูลคนอื่นได้
