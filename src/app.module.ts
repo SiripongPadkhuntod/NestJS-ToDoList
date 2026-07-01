@@ -8,7 +8,9 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { BullModule } from '@nestjs/bullmq';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MailQueueModule } from './mail-queue/mail-queue.module';
 
 @Module({
   imports: [
@@ -16,11 +18,19 @@ import { NotificationsModule } from './notifications/notifications.module';
     ConfigModule.forRoot({ isGlobal: true }),
     // หัวข้อ 3.3 Event-Driven: เปิดใช้งานระบบ Event 
     EventEmitterModule.forRoot(),
+    // หัวข้อ 3.4 Queue & Redis: ตั้งค่าเชื่อมต่อ Redis สำหรับใช้งาน BullMQ
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     TasksModule, 
     UsersModule, 
     PrismaModule, // นำแผนก Tasks เข้ามาเชื่อมต่อ (หัวข้อ 1.3)
     AuthModule, 
-    NotificationsModule,
+    NotificationsModule, 
+    MailQueueModule,
   ],
   providers: [
     {
