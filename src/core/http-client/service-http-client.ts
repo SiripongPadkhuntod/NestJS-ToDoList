@@ -25,10 +25,10 @@ export class ServiceHttpClient {
     this.breaker = new CircuitBreaker(apiCall, options);
 
     // 3. ดักฟัง Event ต่างๆ ของ Circuit Breaker
-    this.breaker.on('open', () => this.logger.warn('🔴 Circuit Breaker OPEN! หยุดยิง API ชั่วคราว!'));
-    this.breaker.on('halfOpen', () => this.logger.log('🟡 Circuit Breaker HALF-OPEN! ลองยิง API อีกครั้ง...'));
-    this.breaker.on('close', () => this.logger.log('🟢 Circuit Breaker CLOSED! API กลับมาปกติแล้ว!'));
-    this.breaker.on('fallback', (result) => this.logger.warn(`🛡️ Fallback ทำงาน: ${result}`));
+    this.breaker.on('open', () => this.logger.warn('Circuit Breaker OPEN. API requests paused.'));
+    this.breaker.on('halfOpen', () => this.logger.log('Circuit Breaker HALF-OPEN. Attempting API request.'));
+    this.breaker.on('close', () => this.logger.log('Circuit Breaker CLOSED. API requests resumed.'));
+    this.breaker.on('fallback', (result) => this.logger.warn(`Fallback triggered: ${result}`));
     
     // ตั้งค่า Fallback (แผนสำรองเมื่อ API ล่ม หรือ Circuit เปิด)
     this.breaker.fallback(() => {
@@ -39,10 +39,10 @@ export class ServiceHttpClient {
   // Method สำหรับให้คนอื่นเรียกใช้งาน
   async get(url: string): Promise<any> {
     try {
-      this.logger.log(`กำลังยิง API ไปที่: ${url}`);
+      this.logger.log(`Executing HTTP request to: ${url}`);
       return await this.breaker.fire(url);
     } catch (error) {
-      this.logger.error(`เกิดข้อผิดพลาดในการยิง API: ${error.message}`);
+      this.logger.error(`HTTP request failed: ${error.message}`);
       throw error;
     }
   }

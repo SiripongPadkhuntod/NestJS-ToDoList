@@ -16,11 +16,32 @@ import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
 import { SecurityModule } from '@core/security/security.module';
 import { HttpClientModule } from '@core/http-client/http-client.module';
 import { StorageModule } from '@core/storage/storage.module';
+import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 @Module({
   imports: [
     // หัวข้อ 2.10 Config & Environment Variable: ใช้โหลดตัวแปรจากไฟล์ .env
     ConfigModule.forRoot({ isGlobal: true }),
+    
+    // ระบบ Logging ขั้นสูงด้วย Pino (Structured JSON Log)
+    PinoLoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL || 'info',
+        transport: process.env.NODE_ENV !== 'production' 
+          ? { target: 'pino-pretty', options: { singleLine: true } }
+          : undefined,
+      },
+    }),
+
+    // ระบบ Metrics เพื่อให้ Prometheus เข้ามาดึงข้อมูลไปแสดงใน Grafana ได้
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
+
     // หัวข้อ 3.3 Event-Driven: เปิดใช้งานระบบ Event 
     EventEmitterModule.forRoot(),
     // หัวข้อ 3.4 Queue & Redis: ตั้งค่าเชื่อมต่อ Redis สำหรับใช้งาน BullMQ
@@ -75,10 +96,10 @@ export class AppModule implements NestModule, OnApplicationShutdown {
   }
 
   beforeApplicationShutdown(signal?: string) {
-    this.appLogger.warn(`⚠️ ได้รับสัญญาณ ${signal} กำลังเริ่มกระบวนการ Graceful Shutdown...`);
+    this.appLogger.warn(`Received signal ${signal}. Starting Graceful Shutdown...`);
   }
 
   onApplicationShutdown(signal?: string) {
-    this.appLogger.log(`✅ กระบวนการ Graceful Shutdown เสร็จสมบูรณ์ (Signal: ${signal}). แอปพลิเคชันปิดการทำงานอย่างปลอดภัย!`);
+    this.appLogger.log(`Graceful Shutdown completed (Signal: ${signal}). Application terminated safely.`);
   }
 }

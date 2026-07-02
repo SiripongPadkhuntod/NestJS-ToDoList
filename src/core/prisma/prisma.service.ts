@@ -34,9 +34,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private readonly logger = new Logger(PrismaService.name);
 
   async onModuleDestroy() {
-    this.logger.log('🔌 กำลังตัดการเชื่อมต่อจาก Database (Graceful Shutdown)...');
+    this.logger.log('Disconnecting from Database (Graceful Shutdown)...');
     await this.$disconnect();
     await this.pool.end();
-    this.logger.log('✅ ตัดการเชื่อมต่อ Database สำเร็จ!');
+    this.logger.log('Database disconnected successfully.');
   }
 }

@@ -25,10 +25,10 @@ export class MinioStorageAdapter implements IFileStorageProvider, OnModuleInit {
       const exists = await this.minioClient.bucketExists(this.bucketName);
       if (!exists) {
         await this.minioClient.makeBucket(this.bucketName, 'ap-southeast-1');
-        this.logger.log(`สร้าง Bucket '${this.bucketName}' เรียบร้อยแล้ว`);
+        this.logger.log(`Bucket '${this.bucketName}' created successfully.`);
       }
     } catch (error) {
-      this.logger.error(`ไม่สามารถเชื่อมต่อหรือตรวจสอบ Bucket ของ MinIO ได้: ${error.message}`);
+      this.logger.error(`Unable to verify or connect to MinIO bucket: ${error.message}`);
     }
   }
 

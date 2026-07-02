@@ -5,8 +5,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter';
 import { TransformInterceptor } from '@core/common/interceptors/transform.interceptor';
 
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // สร้างแอปโดยบอกให้เก็บ Log ไว้ชั่วคราวก่อนจนกว่า Pino จะบูทเสร็จ
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // เสียบ Pino เข้าไปแทนที่ Logger เดิมของ NestJS
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   // Enable API Versioning (e.g., /v1/...)
   app.enableVersioning({
