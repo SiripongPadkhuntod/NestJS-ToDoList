@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { IPasswordHasher } from '../ports/password-hasher.port';
 
 @Injectable()
-export class BcryptPasswordHasher implements IPasswordHasher {
+export class Argon2PasswordHasher implements IPasswordHasher {
   async hash(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
+    return argon2.hash(password);
   }
 
   async compare(password: string, hashed: string): Promise<boolean> {
-    return bcrypt.compare(password, hashed);
+    return argon2.verify(hashed, password);
   }
 }

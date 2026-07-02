@@ -31,13 +31,13 @@ export class PrismaUserRepository implements IUserRepository {
     return users.map(user => new UserModel(user.id, user.email, user.role, user.password));
   }
 
-  async findOne(id: number): Promise<UserModel | null> {
+  async findOne(id: string): Promise<UserModel | null> {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) return null;
     return new UserModel(user.id, user.email, user.role, user.password);
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<UserModel> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserModel> {
     const user = await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
@@ -45,7 +45,7 @@ export class PrismaUserRepository implements IUserRepository {
     return new UserModel(user.id, user.email, user.role, user.password);
   }
 
-  async remove(id: number): Promise<UserModel> {
+  async remove(id: string): Promise<UserModel> {
     const user = await this.prisma.user.delete({ where: { id } });
     return new UserModel(user.id, user.email, user.role, user.password);
   }

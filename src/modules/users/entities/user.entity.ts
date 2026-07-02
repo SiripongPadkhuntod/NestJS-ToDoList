@@ -3,7 +3,7 @@ import { Exclude } from 'class-transformer';
 // หัวข้อ 2.2 Entity — แปลง Class เป็น Table: 
 // นี่คือคลาสที่เป็นตัวแทนข้อมูล (Entity) เพื่อใช้จัดการตอนก่อนจะส่งออกไป (Serialization)
 export class UserEntity {
-  id: number;
+  id: string;
   email: string;
   role: string;
 

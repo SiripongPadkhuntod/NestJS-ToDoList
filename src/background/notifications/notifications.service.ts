@@ -10,7 +10,7 @@ export class NotificationsService {
 
   // หัวข้อ 3.3 Event-Driven: รอรับฟังก์ชันเมื่อมี Event 'user.created' เกิดขึ้น
   @OnEvent('user.created')
-  async handleUserCreatedEvent(payload: { userId: number; email: string }) {
+  async handleUserCreatedEvent(payload: { userId: string; email: string }) {
     this.logger.log(`[Event-Driven] 🎉 ได้รับแจ้งเตือนผู้ใช้ใหม่: ${payload.email} (ID: ${payload.userId})`);
     
     // หัวข้อ 3.4 Queue & Redis: โยนงานส่งอีเมลลงคิว

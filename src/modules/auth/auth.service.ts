@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException, BadRequestException, Inject } from '
 import { IUserRepository, USER_REPOSITORY } from '@modules/users/ports/user.repository';
 import type { IUserRepository as IUserRepositoryType } from '@modules/users/ports/user.repository';
 import { AuthRegisterDto, AuthLoginDto } from './dto/auth.dto';
-import { IPasswordHasher, PASSWORD_HASHER } from './ports/password-hasher.port';
+import { IPasswordHasher, PASSWORD_HASHER } from '@core/security/ports/password-hasher.port';
 import { ITokenGenerator, TOKEN_GENERATOR } from './ports/token-generator.port';
 import { IEventPublisher, EVENT_PUBLISHER } from './ports/event-publisher.port';
-import type { IPasswordHasher as IPasswordHasherType } from './ports/password-hasher.port';
+import type { IPasswordHasher as IPasswordHasherType } from '@core/security/ports/password-hasher.port';
 import type { ITokenGenerator as ITokenGeneratorType } from './ports/token-generator.port';
 import type { IEventPublisher as IEventPublisherType } from './ports/event-publisher.port';
 

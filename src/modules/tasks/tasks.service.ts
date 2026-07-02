@@ -13,11 +13,11 @@ export class TasksService {
     private readonly taskRepository: ITaskRepositoryType,
   ) {}
 
-  async findAll(userId: number): Promise<TaskModel[]> {
+  async findAll(userId: string): Promise<TaskModel[]> {
     return this.taskRepository.findAllByUserId(userId);
   }
 
-  async findOne(id: number, userId: number): Promise<TaskModel> {
+  async findOne(id: string, userId: string): Promise<TaskModel> {
     const task = await this.taskRepository.findOne(id);
     
     if (!task) {
@@ -29,16 +29,16 @@ export class TasksService {
     return task;
   }
 
-  async create(createTaskDto: CreateTaskDto, userId: number): Promise<TaskModel> {
+  async create(createTaskDto: CreateTaskDto, userId: string): Promise<TaskModel> {
     return this.taskRepository.createTask(createTaskDto, userId);
   }
 
-  async update(id: number, updateTaskDto: UpdateTaskDto, userId: number): Promise<TaskModel> {
+  async update(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<TaskModel> {
     await this.findOne(id, userId); // Check if task exists & belongs to user
     return this.taskRepository.updateTask(id, updateTaskDto);
   }
 
-  async remove(id: number, userId: number): Promise<TaskModel> {
+  async remove(id: string, userId: string): Promise<TaskModel> {
     await this.findOne(id, userId); // Check if task exists & belongs to user
     return this.taskRepository.removeTask(id);
   }

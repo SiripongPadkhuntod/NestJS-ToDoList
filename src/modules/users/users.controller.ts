@@ -40,7 +40,7 @@ export class UsersController {
   @Get('me')
   @ApiOperation({ summary: 'ดึงข้อมูลโปรไฟล์ของตัวเอง' })
   @ApiResponse({ status: 200, description: 'คืนค่าข้อมูลผู้ใช้งานที่กำลังล็อกอินอยู่' })
-  getProfile(@User('userId') userId: number) {
+  getProfile(@User('userId') userId: string) {
     // หัวข้อ 3.2: ใช้ Custom Decorator @User() แทน @Request()
     return this.usersService.findOne(userId).then(user => new UserEntity(user));
   }
@@ -50,19 +50,19 @@ export class UsersController {
   @Roles('ADMIN')
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOne(+id);
+    const user = await this.usersService.findOne(id);
     return new UserEntity(user);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.usersService.update(+id, updateUserDto);
+    const user = await this.usersService.update(id, updateUserDto);
     return new UserEntity(user);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    const user = await this.usersService.remove(+id);
+    const user = await this.usersService.remove(id);
     return new UserEntity(user);
   }
 }

@@ -15,20 +15,20 @@ datasource db {
 
 // สร้างตารางชื่อ Task
 model Task {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(uuid())
   title       String
   description String
   status      String   @default("OPEN")
   createdAt   DateTime @default(now())
 
   // หัวข้อ 2.5 Relation (One-to-Many): Task เป็นของ User 1 คน
-  userId      Int?
+  userId      String?
   user        User?    @relation(fields: [userId], references: [id])
 }
 
 // หัวข้อ 2.2 Entity (ส่วน Prisma Model): สร้างตารางชื่อ User
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   email     String   @unique
   password  String
   role      String   @default("USER") // หัวข้อ 2.9 Role-based Authorization: ฟิลด์ระบุสิทธิ์

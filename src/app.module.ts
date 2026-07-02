@@ -1,5 +1,5 @@
 // src/app.module.ts
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, Logger } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config'; // หัวข้อ 2.10: นำเข้า ConfigModule
 import { TasksModule } from '@modules/tasks/tasks.module';
@@ -13,6 +13,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { NotificationsModule } from '@background/notifications/notifications.module';
 import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
+import { SecurityModule } from '@core/security/security.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
       }),
     }),
     TasksModule, 
-    UsersModule, 
+    UsersModule,
+    SecurityModule,
     PrismaModule, // นำแผนก Tasks เข้ามาเชื่อมต่อ (หัวข้อ 1.3)
     AuthModule, 
     NotificationsModule, 
@@ -59,7 +61,9 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply((req, res, next) => {
-        console.log(`[Middleware] มีคนเรียก URL: ${req.method} ${req.url}`);
+        // คอมเมนต์โค้ดส่วนนี้ออกเพื่อไม่ให้รก Console เวลายิง API บ่อยๆ
+        // const logger = new Logger('HTTP');
+        // logger.log(`มีคนเรียก URL: ${req.method} ${req.url}`);
         next(); // ต้องสั่ง next() เสมอ ไม่งั้น Request จะค้าง
       })
       .forRoutes('*'); // ทำงานทุกเส้นทาง
