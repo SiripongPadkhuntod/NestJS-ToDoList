@@ -12,32 +12,32 @@
 
 ```mermaid
 flowchart TD
-    Client((🧑‍💻 ลูกค้า / Client)) --> Helmet[🛡️ ยามติดเกราะ<br>Helmet]
-    Helmet --> Throttler[🎟️ ตู้แจกบัตรคิว<br>Rate Limiter]
-    Throttler --> MW[กล้องวงจรปิด<br>Logger Middleware]
-    MW --> Guard{👮 รปภ. ตรวจบัตร<br>Auth Guard}
+    Client(("🧑‍💻 ลูกค้า / Client")) --> Helmet["🛡️ ยามติดเกราะ<br>Helmet"]
+    Helmet --> Throttler["🎟️ ตู้แจกบัตรคิว<br>Rate Limiter"]
+    Throttler --> MW["กล้องวงจรปิด<br>Logger Middleware"]
+    MW --> Guard{"👮 รปภ. ตรวจบัตร<br>Auth Guard"}
     
-    Guard -- ไม่มีบัตร --> 401[❌ ไล่ออก (401 Error)]
-    Guard -- มีบัตร --> Cache[🧠 พนักงานจำเก่ง<br>Redis Cache]
+    Guard -- ไม่มีบัตร --> Err401["❌ ไล่ออก (401 Error)"]
+    Guard -- มีบัตร --> Cache["🧠 พนักงานจำเก่ง<br>Redis Cache"]
     
-    Cache -- จำได้ (มีแคช) --> Response((📩 ตอบกลับทันที))
-    Cache -- จำไม่ได้ --> Pipe[📝 พนักงานตรวจเอกสาร<br>Validation Pipe]
+    Cache -- จำได้ (มีแคช) --> Response(("📩 ตอบกลับทันที"))
+    Cache -- จำไม่ได้ --> Pipe["📝 พนักงานตรวจเอกสาร<br>Validation Pipe"]
     
-    Pipe -- เอกสารผิด --> 400[❌ ไล่ไปแก้ (400 Error)]
-    Pipe -- เอกสารเป๊ะ --> Ctrl[👩‍💼 พนักงานต้อนรับ<br>Controller]
+    Pipe -- เอกสารผิด --> Err400["❌ ไล่ไปแก้ (400 Error)"]
+    Pipe -- เอกสารเป๊ะ --> Ctrl["👩‍💼 พนักงานต้อนรับ<br>Controller"]
     
-    Ctrl --> CQRS[🔀 แยกแผนก<br>Command / Query]
-    CQRS --> Service[⚙️ แผนกผลิต<br>Business Logic]
+    Ctrl --> CQRS["🔀 แยกแผนก<br>Command / Query"]
+    CQRS --> Service["⚙️ แผนกผลิต<br>Business Logic"]
     
-    Service --> Port[🔌 ปลั๊กพ่วง<br>Port / Interface]
-    Port --> Adapter[🔌 อะแดปเตอร์<br>Database / MinIO / API]
-    Adapter <--> DB[(💾 โกดังเก็บของ<br>Postgres/Redis)]
+    Service --> Port["🔌 ปลั๊กพ่วง<br>Port / Interface"]
+    Port --> Adapter["🔌 อะแดปเตอร์<br>Database / MinIO / API"]
+    Adapter <--> DB[("💾 โกดังเก็บของ<br>Postgres/Redis")]
     
-    Service --> Exception{⚠️ เกิดข้อผิดพลาด?}
-    Exception -- พัง --> Filter[🚑 แผนกเยียวยา<br>Exception Filter]
-    Filter --> ErrorRes((📩 ส่งคำขอโทษ))
+    Service --> Exception{"⚠️ เกิดข้อผิดพลาด?"}
+    Exception -- พัง --> Filter["🚑 แผนกเยียวยา<br>Exception Filter"]
+    Filter --> ErrorRes(("📩 ส่งคำขอโทษ"))
     
-    Exception -- สำเร็จ --> Formatter[🎁 แผนกห่อของขวัญ<br>Interceptor]
+    Exception -- สำเร็จ --> Formatter["🎁 แผนกห่อของขวัญ<br>Interceptor"]
     Formatter --> Response
 ```
 
@@ -100,3 +100,53 @@ flowchart TD
 
 ---
 **สรุป:** ด้วยการจัดวางด่านตรวจและโครงสร้างอย่างเป็นระเบียบแบบนี้ ทำให้โค้ดของเรา "พังยาก", "แก้ปัญหาง่าย", และ "ขยายสเกลเพื่อรับลูกค้าล้านคน" ได้อย่างสบายๆ ครับ!
+
+---
+
+## ⏱️ เจาะลึกแบบทะลุทะลวงด้วย Sequence Diagram
+
+ถ้าคุณอยากรู้ว่า "เวลาทำงานจริงๆ มันคุยกันอย่างไร (ลำดับก่อน-หลัง)" ลองดู Sequence Diagram นี้ ที่จำลองสถานการณ์: **"ลูกค้าขอสร้างข้อมูล Task ใหม่ และแอปของเราต้องไปดึงคำคม (Inspiration) จาก API ภายนอกมาประกอบด้วย"**
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as 🧑‍💻 ลูกค้า (Client)
+    participant Ctrl as 👩‍💼 Controller
+    participant Bus as 🔀 Command/Query Bus
+    participant H as ⚙️ Handler (Business Logic)
+    participant Repo as 🔌 Repository (Port)
+    participant DB as 💾 Database (Adapter)
+    participant CB as ⚡ Circuit Breaker (Opossum)
+    participant Ext as 🌍 External API
+    
+    C->>Ctrl: POST /tasks (ขอสร้างงานใหม่)
+    Ctrl->>Bus: โยนคำสั่ง (CreateTaskCommand)
+    Bus->>H: แจกจ่ายงานให้แผนกที่ถูกต้อง
+    
+    rect rgb(240, 248, 255)
+        Note right of H: 💡 เริ่มกระบวนการ Business Logic
+        H->>CB: ขอข้อมูล Inspiration หน่อย
+        
+        alt 🟢 สะพานไฟเชื่อมต่อปกติ (Closed)
+            CB->>Ext: ยิง HTTP Request
+            Ext-->>CB: ข้อมูลคำคม
+            CB-->>H: ส่งคำคมให้ Handler
+        else 🔴 สะพานไฟตัด (Open / API ล่ม)
+            CB-->>H: ❌ ปฏิเสธทันที (Fail Fast) โดยไม่ต้องรอ
+        end
+    end
+    
+    H->>Repo: นำข้อมูลไปเซฟ (เรียกผ่าน Interface)
+    Repo->>DB: แปลงคำสั่งเป็น SQL (Prisma/PG)
+    DB-->>Repo: บันทึกสำเร็จ
+    Repo-->>H: ยืนยันผลการบันทึก
+    
+    H-->>Bus: แจ้งว่างานเสร็จแล้ว
+    Bus-->>Ctrl: ส่งข้อมูลกลับไปแผนกต้อนรับ
+    Ctrl-->>C: 📩 201 Created (สร้างงานสำเร็จ!)
+```
+
+### 💡 เกร็ดความรู้จาก Sequence Diagram นี้:
+1. **Controller ไม่ทำอะไรเลย:** สังเกตว่า Controller แทบไม่ประมวลผลอะไร มันแค่โยนงานให้ Bus (เบอร์ 2)
+2. **Business Logic ไม่คุยกับ DB โดยตรง:** Handler (เบอร์ 3) คุยกับ **Repository (Port)** เท่านั้น มันไม่รู้เลยด้วยซ้ำว่าข้างล่างใช้ Prisma หรือ Postgres (เบอร์ 8) นี่คือแก่นแท้ของ Hexagonal Architecture!
+3. **ป้องกันระบบค้างด้วย Circuit Breaker:** สังเกตกล่องสีฟ้า (เบอร์ 4-7) ถ้า API ภายนอกล่ม `Opossum` จะตัดบททันที (Fail Fast) ช่วยให้ระบบของเราวิ่งต่อไปบรรทัดที่ 8 ได้ โดยไม่ต้องค้างรอจนหมดเวลา (Timeout)
