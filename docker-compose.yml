@@ -1,9 +1,40 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: phase-one-postgres
+    ports:
+      - "5433:5432"  # แมปพอร์ต 5433 ข้างนอก ไปหา 5432 ข้างในคอนเทนเนอร์
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "password123"
+      POSTGRES_DB: "phase_one_db"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   redis:
     image: redis:alpine
     container_name: phase-one-redis
     ports:
       - "6379:6379"
     restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: phase-one-minio
+    ports:
+      - "9000:9000"   # API Port
+      - "9001:9001"   # Web UI Console Port
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+volumes:
+  minio_data:
+  postgres_data:

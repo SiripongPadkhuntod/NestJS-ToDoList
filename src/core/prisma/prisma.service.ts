@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -31,8 +31,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     await this.$connect(); // สั่งเชื่อมต่อ Database
   }
 
+  private readonly logger = new Logger(PrismaService.name);
+
   async onModuleDestroy() {
+    this.logger.log('🔌 กำลังตัดการเชื่อมต่อจาก Database (Graceful Shutdown)...');
     await this.$disconnect();
     await this.pool.end();
+    this.logger.log('✅ ตัดการเชื่อมต่อ Database สำเร็จ!');
   }
 }

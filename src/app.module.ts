@@ -1,5 +1,5 @@
 // src/app.module.ts
-import { Module, NestModule, MiddlewareConsumer, Logger } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config'; // หัวข้อ 2.10: นำเข้า ConfigModule
 import { TasksModule } from '@modules/tasks/tasks.module';
@@ -15,6 +15,7 @@ import { NotificationsModule } from '@background/notifications/notifications.mod
 import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
 import { SecurityModule } from '@core/security/security.module';
 import { HttpClientModule } from '@core/http-client/http-client.module';
+import { StorageModule } from '@core/storage/storage.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { HttpClientModule } from '@core/http-client/http-client.module';
     UsersModule,
     SecurityModule,
     HttpClientModule,
+    StorageModule,
     PrismaModule, // นำแผนก Tasks เข้ามาเชื่อมต่อ (หัวข้อ 1.3)
     AuthModule, 
     NotificationsModule, 
@@ -58,7 +60,8 @@ import { HttpClientModule } from '@core/http-client/http-client.module';
     },
   ],
 })
-export class AppModule implements NestModule {
+export class AppModule implements NestModule, OnApplicationShutdown {
+  private readonly appLogger = new Logger('GracefulShutdown');
   // ตั้งค่า Middleware (หัวข้อ 1.10)
   configure(consumer: MiddlewareConsumer) {
     consumer
@@ -69,5 +72,13 @@ export class AppModule implements NestModule {
         next(); // ต้องสั่ง next() เสมอ ไม่งั้น Request จะค้าง
       })
       .forRoutes('*'); // ทำงานทุกเส้นทาง
+  }
+
+  beforeApplicationShutdown(signal?: string) {
+    this.appLogger.warn(`⚠️ ได้รับสัญญาณ ${signal} กำลังเริ่มกระบวนการ Graceful Shutdown...`);
+  }
+
+  onApplicationShutdown(signal?: string) {
+    this.appLogger.log(`✅ กระบวนการ Graceful Shutdown เสร็จสมบูรณ์ (Signal: ${signal}). แอปพลิเคชันปิดการทำงานอย่างปลอดภัย!`);
   }
 }
