@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter'
 import { TransformInterceptor } from '@core/common/interceptors/transform.interceptor';
 
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import helmet from 'helmet';
 
 async function bootstrap() {
   // สร้างแอปโดยบอกให้เก็บ Log ไว้ชั่วคราวก่อนจนกว่า Pino จะบูทเสร็จ
@@ -14,6 +15,9 @@ async function bootstrap() {
   // เสียบ Pino เข้าไปแทนที่ Logger เดิมของ NestJS
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
+
+  // เปิดใช้งาน Helmet เพื่อยกระดับความปลอดภัย (Security Headers)
+  app.use(helmet());
 
   // Enable API Versioning (e.g., /v1/...)
   app.enableVersioning({

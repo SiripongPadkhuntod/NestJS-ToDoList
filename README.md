@@ -1,98 +1,97 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚀 Phase One App (Enterprise-Grade NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+โปรเจกต์นี้เป็นแอปพลิเคชัน NestJS ที่ถูกออกแบบและพัฒนาขึ้นมาด้วยมาตรฐาน **Production-Ready** และ **Enterprise-Grade** อย่างแท้จริง โดยยึดหลักการพัฒนาซอฟต์แวร์ที่ทันสมัย เช่น Hexagonal Architecture, CQRS และ 12-Factor App Methodology
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🌟 คุณสมบัติเด่น (Key Features)
 
-## Description
+*   **Hexagonal Architecture (Ports & Adapters):** โครงสร้างที่แยก Core Business Logic ออกจากเครื่องมือภายนอก (Database, API, Storage) อย่างเด็ดขาด ทำให้โค้ดทดสอบได้ง่ายและเปลี่ยนเครื่องมือได้โดยไม่กระทบระบบหลัก
+*   **CQRS (Command Query Responsibility Segregation):** แยกเส้นทางการอ่าน (Query) และการเขียน (Command) ข้อมูลออกจากกัน รองรับการขยายสเกลระบบในอนาคต
+*   **12-Factor App Ready:** โครงสร้างพร้อมลุย Cloud-Native (Stateless, Configuration via ENV, Logs as Streams)
+*   **Resiliency (ความทนทานต่อความล้มเหลว):** ป้องกันระบบล่มด้วย **Circuit Breaker** (Opossum) เมื่อเชื่อมต่อกับ API ภายนอก
+*   **Graceful Shutdown:** ระบบสามารถปิดตัวเองได้อย่างปลอดภัย (ดักจับ SIGINT/SIGTERM) ปิด Connection ของ Database และ Redis อย่างหมดจด
+*   **Observability:** 
+    *   **Logs:** ใช้ `Pino` สำหรับจัดการ Structured JSON Logs แบบรวดเร็วปานสายฟ้า
+    *   **Metrics:** มี `Prometheus` Endpoint เพื่อนำข้อมูลไปวาดกราฟบน Grafana
+    *   **Health Checks:** ใช้ `@nestjs/terminus` (ตรวจสอบสถานะ DB, Network, Memory)
+*   **Security & Rate Limiting:** ปกป้องแอปพลิเคชันด้วย `Helmet` และ `@nestjs/throttler`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠️ Tech Stack
 
-## Project setup
+*   **Framework:** [NestJS](https://nestjs.com/) (TypeScript)
+*   **Database:** PostgreSQL ผ่าน [Prisma ORM](https://www.prisma.io/)
+*   **Caching & Queue:** Redis (ผ่าน `BullMQ` และ `CacheManager`)
+*   **Storage:** [MinIO](https://min.io/) (S3-Compatible Object Storage)
+*   **Authentication:** JWT (JSON Web Tokens) กับ Argon2 (สำหรับการเข้ารหัสรหัสผ่าน)
 
+---
+
+## 🚦 วิธีการติดตั้งและรันโปรเจกต์ (Getting Started)
+
+### 1. ความต้องการของระบบ (Prerequisites)
+*   Node.js (v20+)
+*   Docker และ Docker Compose
+
+### 2. ติดตั้ง Dependencies
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
-
+### 3. ตั้งค่า Environment Variables
+ทำการก๊อปปี้ไฟล์ `.env.example` แล้วเปลี่ยนชื่อเป็น `.env` (ค่าพื้นฐานถูกตั้งค่าไว้พร้อมใช้งานสำหรับเครื่อง Local แล้ว)
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
-
+### 4. รัน Backing Services (Database, Redis, MinIO)
+เราใช้ Docker Compose ในการจำลองสภาพแวดล้อมที่จำเป็นทั้งหมด:
 ```bash
-# unit tests
-$ npm run test
+docker-compose up -d
+```
+*(หากต้องการปิดบริการ ให้รันคำสั่ง `docker-compose down`)*
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### 5. ซิงค์ Database Schema (Prisma)
+ดันโครงสร้างฐานข้อมูลไปยัง PostgreSQL และสร้าง Prisma Client:
+```bash
+npx prisma db push
+npx prisma generate
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 6. รันแอปพลิเคชัน (Development)
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
+```
+ตอนนี้ API ของคุณพร้อมให้บริการแล้วที่ `http://localhost:3000`
+
+---
+
+## 🐳 การรันโหมด Production ด้วย Docker
+
+โปรเจกต์นี้มาพร้อมกับ Multi-stage `Dockerfile` ซึ่งรีดขนาดของอิมเมจให้เล็กที่สุดและปลอดภัยที่สุด 
+
+รันคำสั่งด้านล่างเพื่อสร้างคอนเทนเนอร์ของแอปพลิเคชันไปพร้อมๆ กับเซอร์วิสอื่นๆ:
+```bash
+# การใส่ --profile prod จะไปกระตุ้นให้ docker-compose.yml ทำการบิลด์และรันเซอร์วิส 'api'
+docker-compose --profile prod up -d --build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 📚 API Documentation (Swagger)
 
-Check out a few resources that may come in handy when working with NestJS:
+เมื่อเซิร์ฟเวอร์รันอยู่ คุณสามารถเข้าไปดูและทดสอบ API ทั้งหมดได้ผ่านหน้าต่าง Swagger:
+👉 **[http://localhost:3000/api/docs](http://localhost:3000/api/docs)**
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🩺 System Endpoints
 
-## Support
+*   **Health Check:** `GET /v1/health` (ตรวจสอบว่าแอปยังหายใจอยู่ไหม และต่อ DB/Redis ติดหรือไม่)
+*   **Prometheus Metrics:** `GET /metrics` (ข้อมูลดิบสำหรับให้ระบบ Monitoring มาดูดไปทำกราฟ)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## 👨‍💻 สำหรับนักพัฒนา (Developer Experience)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+โปรเจกต์นี้มีไฟล์ `.vscode` ติดตั้งมาให้แล้ว คุณสามารถใช้คำสั่งลัดจากใน VSCode ได้ทันที:
+1. กด `Cmd+Shift+P` (หรือ `Ctrl+Shift+P`)
+2. พิมพ์ `Tasks: Run Task`
+3. เลือกคำสั่งที่คุณต้องการ เช่น *Start All Services (Docker)*, *Start Dev Server*, หรือ *Prisma Studio* เป็นต้น 
+4. สำหรับการ Debug สามารถกดปุ่ม **Run and Debug** ใน VSCode ได้ทันที (มีคอนฟิก `launch.json` ให้แล้ว)

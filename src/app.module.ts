@@ -1,6 +1,5 @@
 // src/app.module.ts
 import { Module, NestModule, MiddlewareConsumer, Logger, OnApplicationShutdown } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config'; // หัวข้อ 2.10: นำเข้า ConfigModule
 import { TasksModule } from '@modules/tasks/tasks.module';
 import { UsersModule } from '@modules/users/users.module';
@@ -18,12 +17,21 @@ import { HttpClientModule } from '@core/http-client/http-client.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { HealthModule } from '@core/health/health.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     // หัวข้อ 2.10 Config & Environment Variable: ใช้โหลดตัวแปรจากไฟล์ .env
     ConfigModule.forRoot({ isGlobal: true }),
     
+    // Rate Limiting (ป้องกันคนยิง API รัวๆ) - จำกัด x ครั้งต่อ y วินาทีต่อ 1 IP
+    ThrottlerModule.forRoot([{
+      ttl: parseInt(process.env.THROTTLE_TTL_MS || '60000', 10),
+      limit: parseInt(process.env.THROTTLE_LIMIT || '100', 10),
+    }]),
+
     // ระบบ Logging ขั้นสูงด้วย Pino (Structured JSON Log)
     PinoLoggerModule.forRoot({
       pinoHttp: {
@@ -60,7 +68,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
             host: process.env.REDIS_HOST || 'localhost',
             port: parseInt(process.env.REDIS_PORT || '6379', 10),
           },
-          ttl: 60000, // แคชไว้ 1 นาที (60 วินาที)
+          ttl: parseInt(process.env.CACHE_TTL_MS || '60000', 10),
         }),
       }),
     }),
@@ -73,11 +81,16 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     AuthModule, 
     NotificationsModule, 
     MailQueueModule,
+    HealthModule,
   ],
   providers: [
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

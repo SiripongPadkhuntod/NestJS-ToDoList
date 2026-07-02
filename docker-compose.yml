@@ -35,6 +35,32 @@ services:
       - minio_data:/data
     restart: unless-stopped
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phase-one-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_USER=admin
+      - DB_PASSWORD=password123
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=phase_one_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    profiles:
+      - prod
+    restart: unless-stopped
+
 volumes:
   minio_data:
   postgres_data:
