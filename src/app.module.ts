@@ -14,6 +14,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { NotificationsModule } from '@background/notifications/notifications.module';
 import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
 import { SecurityModule } from '@core/security/security.module';
+import { HttpClientModule } from '@core/http-client/http-client.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { SecurityModule } from '@core/security/security.module';
     TasksModule, 
     UsersModule,
     SecurityModule,
+    HttpClientModule,
     PrismaModule, // นำแผนก Tasks เข้ามาเชื่อมต่อ (หัวข้อ 1.3)
     AuthModule, 
     NotificationsModule, 
