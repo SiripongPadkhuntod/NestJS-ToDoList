@@ -1,152 +1,186 @@
-# 🔄 System Lifecycle: ผ่าตัดระบบให้เข้าใจถึงแก่น (ฉบับเข้าใจง่าย)
+# 🔄 System Lifecycle: เจาะลึกการเดินทางของระบบ (แบบแยกส่วนให้เข้าใจง่าย)
 
-หากการอ่านโค้ดนับพันบรรทัดทำให้คุณปวดหัว เอกสารนี้จะช่วยอธิบายว่า **"ระบบที่เราสร้างขึ้นมาทำงานอย่างไร"** โดยเปรียบเทียบแอปพลิเคชันของเราให้เป็น **"ห้างสรรพสินค้า (หรือโรงงาน) ระดับพรีเมียม"** 
-
-ลองจินตนาการว่า มีลูกค้า (Client/User) คนหนึ่งเดินเข้ามากดปุ่มบนเว็บไซต์ เพื่อขอข้อมูลหรือสั่งให้ระบบทำอะไรบางอย่าง (ยิง Request เข้ามา) ...คำสั่งนั้นจะต้องเดินผ่าน "ด่าน" อะไรบ้างกว่าจะสำเร็จ?
+เพื่อให้เห็นภาพที่ชัดเจนที่สุดและไม่ปวดหัวกับ "เส้นที่พันกันยุ่งเหยิง" เราจะซอยย่อยระบบออกเป็น 3 ส่วนหลัก ได้แก่ **1. ด่านหน้า (Global Pipeline)**, **2. โครงสร้างหลัก (Core Architecture)**, และ **3. สถานการณ์จำลอง (Sequence Flow)** ครับ
 
 ---
 
-## 🗺️ แผนผังการเดินทางของ 1 Request
-
-เพื่อให้เห็นภาพรวม ลองดูแผนผังการเดินทางนี้ก่อนครับ:
+## 1️⃣ ด่านหน้า: Global Request Pipeline
+นี่คือสิ่งที่เกิดขึ้น **"ก่อนที่ข้อมูลจะไปถึง Controller"** ระบบจะทำการกรองและตรวจสอบความปลอดภัยเป็นลำดับชั้น (เรียงจากบนลงล่าง):
 
 ```mermaid
 flowchart TD
-    Client(("🧑‍💻 ลูกค้า / Client")) --> Helmet["🛡️ ยามติดเกราะ<br>Helmet"]
-    Helmet --> Throttler["🎟️ ตู้แจกบัตรคิว<br>Rate Limiter"]
-    Throttler --> MW["กล้องวงจรปิด<br>Logger Middleware"]
-    MW --> Guard{"👮 รปภ. ตรวจบัตร<br>Auth Guard"}
+    Client(("🧑‍💻 ลูกค้า / Client"))
     
-    Guard -- ไม่มีบัตร --> Err401["❌ ไล่ออก (401 Error)"]
-    Guard -- มีบัตร --> Cache["🧠 พนักงานจำเก่ง<br>Redis Cache"]
+    subgraph Security ["🛡️ ด่านที่ 1: Security & Observability"]
+        direction TB
+        H["Helmet<br>(ใส่เกราะกันแฮก)"]
+        T["Throttler<br>(จำกัดคิว กันสแปม)"]
+        L["Pino Logger<br>(บันทึกประวัติการเข้าออก)"]
+        H --> T --> L
+    end
     
-    Cache -- จำได้ (มีแคช) --> Response(("📩 ตอบกลับทันที"))
-    Cache -- จำไม่ได้ --> Pipe["📝 พนักงานตรวจเอกสาร<br>Validation Pipe"]
+    subgraph GuardsPipes ["🛂 ด่านที่ 2: Validation & Auth"]
+        direction TB
+        G{"Auth Guard<br>(ตรวจบัตร JWT)"}
+        C{"Cache Interceptor<br>(เช็คว่าเคยถามคำถามนี้ไหม?)"}
+        P{"Validation Pipe<br>(ตรวจแบบฟอร์ม DTO)"}
+        G --> C --> P
+    end
     
-    Pipe -- เอกสารผิด --> Err400["❌ ไล่ไปแก้ (400 Error)"]
-    Pipe -- เอกสารเป๊ะ --> Ctrl["👩‍💼 พนักงานต้อนรับ<br>Controller"]
+    Client --> H
+    L --> G
     
-    Ctrl --> CQRS["🔀 แยกแผนก<br>Command / Query"]
-    CQRS --> Service["⚙️ แผนกผลิต<br>Business Logic"]
+    G -- "ไม่มีบัตร / บัตรปลอม" --> E401["❌ 401 Unauthorized"]
+    C -- "มีข้อมูลในความจำ" --> Res(("📩 ส่งข้อมูลกลับทันที"))
+    P -- "กรอกฟอร์มผิดรูปแบบ" --> E400["❌ 400 Bad Request"]
     
-    Service --> Port["🔌 ปลั๊กพ่วง<br>Port / Interface"]
-    Port --> Adapter["🔌 อะแดปเตอร์<br>Database / MinIO / API"]
-    Adapter <--> DB[("💾 โกดังเก็บของ<br>Postgres/Redis")]
-    
-    Service --> Exception{"⚠️ เกิดข้อผิดพลาด?"}
-    Exception -- พัง --> Filter["🚑 แผนกเยียวยา<br>Exception Filter"]
-    Filter --> ErrorRes(("📩 ส่งคำขอโทษ"))
-    
-    Exception -- สำเร็จ --> Formatter["🎁 แผนกห่อของขวัญ<br>Interceptor"]
-    Formatter --> Response
+    P -- "ผ่านทุกด่าน" --> Ctrl["👩‍💼 Controller (แผนกต้อนรับ)"]
 ```
 
 ---
 
-## 🛑 ด่านที่ 1: หน้าประตูห้าง (Security & Logging)
-ก่อนที่คำสั่งจะเข้ามาถึงตัวโค้ดหลักของเรา มันต้องเจอกับระบบรักษาความปลอดภัยชั้นนอกสุดก่อน:
+## 2️⃣ โครงสร้างหลัก: Core Architecture (CQRS & Hexagonal)
+เมื่อคำสั่งทะลุด่านหน้ามาถึง **Controller** นี่คือภาพรวมการทำงานของ "แก่นของแอปพลิเคชัน (Domain)" ที่แยกส่วนประกอบต่างๆ ออกจากกันอย่างเด็ดขาด (อ่านจากซ้ายไปขวา):
 
-1. **Helmet (ยามติดเกราะป้องกันภัย):** 
-   คอยตรวจตราและใส่หมวกกันน็อกให้ระบบ ป้องกันแฮกเกอร์ที่พยายามจะเจาะเข้ามาผ่านช่องโหว่พื้นฐานของเบราว์เซอร์
-2. **Throttler (ตู้แจกบัตรคิว / Rate Limiter):** 
-   ป้องกันคนมากดปุ่มรัวๆ (Spam) หรือบอทที่พยายามจะยิงระบบให้ล่ม ถ้าใครยิงมาเกิน 100 ครั้งใน 1 นาที ตู้แจกบัตรคิวจะบล็อกคนนั้นทันที
-3. **Pino Logger (กล้องวงจรปิด / Middleware):** 
-   ทำหน้าที่จดบันทึกลงสมุด (Log) อย่างรวดเร็วว่า "มีใคร IP อะไร เข้ามาตอนกี่โมง และต้องการทำอะไร" ข้อมูลนี้สำคัญมากเวลาที่ระบบพังแล้วเราต้องมาตามสืบทีหลัง
-
-## 🎫 ด่านที่ 2: จุดตรวจความเรียบร้อย (Guards, Caches, Pipes)
-พอเข้ามาในห้างได้แล้ว ก็ต้องผ่านด่านคัดกรองบุคคล:
-
-1. **Auth Guard (รปภ. ตรวจบัตร):** 
-   ระบบจะขอดูบัตรพนักงาน (JWT Token) ถ้าคุณจะมาดึงข้อมูลส่วนตัวแต่ไม่มีบัตร รปภ. จะไล่คุณกลับไปทันที (Error 401 Unauthorized)
-2. **Cache Interceptor (พนักงานจำเก่ง):** 
-   พนักงานคนนี้จะดูคำถามของคุณ ถ้าคุณถามคำถามเดิมที่เพิ่งมีคนถามไปเมื่อ 10 วินาทีที่แล้ว (เช่น "ขอดูรายการ Task ทั้งหมดหน่อย") พนักงานคนนี้จะ **"ตอบกลับทันที"** โดยเอาข้อมูลจากความจำ (Redis) โดยไม่กวนเวลาทำงานของคนข้างใน!
-3. **Validation Pipe (พนักงานตรวจเอกสาร):** 
-   ถ้าคุณมาขอสมัครสมาชิก พนักงานคนนี้จะเช็คว่าคุณกรอกฟอร์มครบไหม? ใส่อีเมลถูกรูปแบบ (`@`) หรือเปล่า? รหัสผ่านยาวพอไหม? ถ้ากรอกผิดแม้แต่นิดเดียว จะโดนตีกลับไปแก้ (Error 400 Bad Request) ทันที เพื่อไม่ให้ข้อมูลขยะหลุดเข้าไปในระบบ
-
-## 👩‍💼 ด่านที่ 3: แผนกต้อนรับ (Controller)
-เมื่อเอกสารทุกอย่างผ่านฉลุย คำสั่งจะมาถึง **Controller** 
-*   Controller เปรียบเสมือน **"พนักงานต้อนรับ"** ที่ไม่ลงมือทำของเอง แต่มีหน้าที่แค่ "รับเรื่อง" แล้วบอกว่า "อ๋อ เรื่องนี้ต้องส่งไปให้แผนกไหนจัดการ" 
-
-## ⚙️ ด่านที่ 4: หัวใจของโรงงาน (Core Business Logic)
-ตรงนี้คือจุดที่ทำให้โปรเจกต์นี้เป็น "Enterprise" หรือระบบขนาดใหญ่ที่แท้จริง:
-
-1. **CQRS (ระบบแยกแผนกทำงาน):**
-   แทนที่จะให้แผนกเดียวทำทุกอย่าง เราแยกเป็น 2 แผนกชัดเจน:
-   *   **Query (แผนกตอบคำถาม):** มีหน้าที่แค่ไปค้นแฟ้มแล้วเอาข้อมูลมาอ่านอย่างรวดเร็ว
-   *   **Command (แผนกสร้างของ):** มีหน้าที่อัปเดต ลบ สร้าง ข้อมูลใหม่ 
-   การแยกแบบนี้ทำให้โรงงานเราทำงานได้เร็วขึ้นมาก และไม่แย่งเครื่องมือกัน
-2. **Hexagonal Architecture (ระบบปลั๊กพ่วง):**
-   โรงงานของเรา (Business Logic) จะไม่ยึดติดกับยี่ห้อของเครื่องมือเลย เราสร้าง **Interface (เต้าเสียบ)** เอาไว้ ถ้าวันนึงเราอยากเปลี่ยน Database จาก Postgres เป็น MySQL เราก็แค่ไปซื้อ **Adapter (หัวแปลง)** มาเสียบใหม่ โรงงานก็ทำงานต่อได้ทันทีโดยไม่ต้องรื้อระบบใหม่!
-3. **Circuit Breaker (สะพานไฟฉุกเฉิน):**
-   ถ้าเราต้องไปดึงข้อมูลจากโรงงานอื่น (External API) แล้วโรงงานนั้นไฟดับ (ล่ม) ระบบ **Opossum** ของเราจะสับสะพานไฟลงทันที เพื่อไม่ให้พนักงานของเราต้องยืนรอจนสลบ (Timeout) คอยป้องกันไม่ให้ระบบเราพังตามเพื่อน
-
-## 🎁 ด่านที่ 5: การส่งมอบของ (Response & Exception Filters)
-เมื่อผลิตของเสร็จแล้ว (ดึงข้อมูลจาก DB ได้แล้ว):
-
-1. **Interceptor (แผนกห่อของขวัญ):** 
-   จะเอาข้อมูลที่ได้มาจัดรูปแบบให้สวยงาม (เช่น แปลงวันที่ ใส่ Meta ข้อมูล) ก่อนส่งให้ลูกค้า
-2. **Exception Filter (แผนกเยียวยาลูกค้า):** 
-   แต่ถ้าเกิดข้อผิดพลาดขึ้นระหว่างทาง (เช่น หาของไม่เจอ) แผนกนี้จะคอยดักจับ Error ที่เป็นตัวหนังสือเทคนิคอ่านยากๆ แปลงเป็นคำขอโทษสวยๆ (JSON Error Message) คืนให้ลูกค้าแทน
-
----
-
-## 🔌 ปลั๊กเสริม: การปิดโรงงาน (Graceful Shutdown)
-ระบบที่ดีไม่ได้วัดกันแค่ตอนเปิด แต่วัดกันตอน "ปิด" ด้วย 
-เมื่อเราสั่งปิดเซิร์ฟเวอร์ (เช่น ส่งสัญญาณ `SIGINT` เวลาแก้ไขโค้ด หรืออัปเดตเวอร์ชัน) ระบบจะไม่ดึงปลั๊กออกทันที (ซึ่งจะทำให้ข้อมูลลูกค้าที่กำลังบันทึกอยู่สูญหาย) แต่ระบบจะ:
-1. เลิกรับลูกค้าใหม่เข้ามาในห้าง
-2. รอให้ลูกค้าที่อยู่ในห้าง (Request ที่กำลังประมวลผล) ทำธุระให้เสร็จ
-3. ปิดการเชื่อมต่อกับ Database อย่างปลอดภัย
-4. ปิดสวิตช์ตัวเองอย่างสง่างาม (Graceful Shutdown)
-
----
-**สรุป:** ด้วยการจัดวางด่านตรวจและโครงสร้างอย่างเป็นระเบียบแบบนี้ ทำให้โค้ดของเรา "พังยาก", "แก้ปัญหาง่าย", และ "ขยายสเกลเพื่อรับลูกค้าล้านคน" ได้อย่างสบายๆ ครับ!
+```mermaid
+flowchart LR
+    Ctrl["👩‍💼 Controller<br>(แผนกต้อนรับ)"]
+    
+    subgraph CQRS ["🔀 CQRS (ผู้แจกแจงงาน)"]
+        direction TB
+        CBus["Command Bus<br>(สายงานเขียนข้อมูล)"]
+        QBus["Query Bus<br>(สายงานอ่านข้อมูล)"]
+    end
+    
+    subgraph Domain ["⚙️ Business Logic (สมองของระบบ)"]
+        direction TB
+        CH["Command Handler<br>(คนสร้าง/ลบ/แก้)"]
+        QH["Query Handler<br>(คนค้นหาข้อมูล)"]
+    end
+    
+    subgraph Ports ["🔌 Ports (เต้าเสียบ Interface)"]
+        direction TB
+        IRepo["ITaskRepository<br>(พอร์ตเซฟข้อมูล)"]
+        IAPI["IExternalAPI<br>(พอร์ตต่อเน็ต)"]
+    end
+    
+    subgraph Adapters ["🔌 Adapters (หัวปลั๊กเครื่องมือจริง)"]
+        direction TB
+        Prisma["Prisma Adapter<br>(คุยกับ SQL)"]
+        Http["Http Adapter<br>(คุยกับ API ชาวบ้าน)"]
+    end
+    
+    Ctrl --> CBus & QBus
+    CBus --> CH
+    QBus --> QH
+    
+    CH --> IRepo & IAPI
+    QH --> IRepo
+    
+    IRepo -. "Implement" .-> Prisma
+    IAPI -. "Implement" .-> Http
+    
+    Prisma <--> DB[("💾 PostgreSQL / Redis")]
+    Http <--> Ext["🌍 External API"]
+```
 
 ---
 
-## ⏱️ เจาะลึกแบบทะลุทะลวงด้วย Sequence Diagram
+## 3️⃣ สถานการณ์จำลอง (Sequence Diagrams)
 
-ถ้าคุณอยากรู้ว่า "เวลาทำงานจริงๆ มันคุยกันอย่างไร (ลำดับก่อน-หลัง)" ลองดู Sequence Diagram นี้ ที่จำลองสถานการณ์: **"ลูกค้าขอสร้างข้อมูล Task ใหม่ และแอปของเราต้องไปดึงคำคม (Inspiration) จาก API ภายนอกมาประกอบด้วย"**
+เพื่อให้เห็นภาพเวลาทำงานจริงว่า "ใครคุยกับใครก่อนหลัง" เรามาดู **3 สถานการณ์ยอดฮิต** ที่เกิดขึ้นในระบบของเรากันครับ:
+
+### Flow A: การสร้างงานใหม่ (มี Circuit Breaker ป้องกัน API ล่ม)
+**สถานการณ์:** ลูกค้าส่งคำสั่ง `POST /tasks` เพื่อสร้างงานใหม่ ซึ่งเราต้องไปขอ "คำคม (Inspiration)" จากเว็บอื่นมาแปะไว้ด้วย
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor C as 🧑‍💻 ลูกค้า (Client)
+    actor C as 🧑‍💻 Client
     participant Ctrl as 👩‍💼 Controller
-    participant Bus as 🔀 Command/Query Bus
-    participant H as ⚙️ Handler (Business Logic)
-    participant Repo as 🔌 Repository (Port)
-    participant DB as 💾 Database (Adapter)
-    participant CB as ⚡ Circuit Breaker (Opossum)
-    participant Ext as 🌍 External API
+    participant Bus as 🔀 Command Bus
+    participant H as ⚙️ CreateTaskHandler
+    participant API as 🔌 HttpAdapter (Opossum)
+    participant Repo as 🔌 PrismaAdapter
     
-    C->>Ctrl: POST /tasks (ขอสร้างงานใหม่)
+    C->>Ctrl: POST /tasks
     Ctrl->>Bus: โยนคำสั่ง (CreateTaskCommand)
-    Bus->>H: แจกจ่ายงานให้แผนกที่ถูกต้อง
+    Bus->>H: จ่ายงานให้ Handler
     
-    rect rgb(240, 248, 255)
-        Note right of H: 💡 เริ่มกระบวนการ Business Logic
-        H->>CB: ขอข้อมูล Inspiration หน่อย
-        
-        alt 🟢 สะพานไฟเชื่อมต่อปกติ (Closed)
-            CB->>Ext: ยิง HTTP Request
-            Ext-->>CB: ข้อมูลคำคม
-            CB-->>H: ส่งคำคมให้ Handler
-        else 🔴 สะพานไฟตัด (Open / API ล่ม)
-            CB-->>H: ❌ ปฏิเสธทันที (Fail Fast) โดยไม่ต้องรอ
-        end
+    Note right of H: 💡 1. เริ่มไปดึงคำคมจากเน็ต
+    H->>API: getInspiration()
+    
+    alt 🟢 API ภายนอกทำงานปกติ
+        API-->>H: "Just do it!" (ได้คำคม)
+    else 🔴 API ภายนอกค้าง/ล่ม (Circuit Open)
+        API-->>H: ❌ สะพานไฟตัด (Fail Fast) โดยไม่รอให้ระบบเราค้าง
     end
     
-    H->>Repo: นำข้อมูลไปเซฟ (เรียกผ่าน Interface)
-    Repo->>DB: แปลงคำสั่งเป็น SQL (Prisma/PG)
-    DB-->>Repo: บันทึกสำเร็จ
-    Repo-->>H: ยืนยันผลการบันทึก
+    Note right of H: 💾 2. นำข้อมูลทั้งหมดไปเซฟลง DB
+    H->>Repo: create(Task + Inspiration)
+    Repo-->>H: ยืนยันการเซฟสำเร็จ
     
-    H-->>Bus: แจ้งว่างานเสร็จแล้ว
-    Bus-->>Ctrl: ส่งข้อมูลกลับไปแผนกต้อนรับ
-    Ctrl-->>C: 📩 201 Created (สร้างงานสำเร็จ!)
+    H-->>Bus: งานเสร็จแล้ว
+    Bus-->>Ctrl: ส่งข้อมูลกลับ
+    Ctrl-->>C: 📩 201 Created (สำเร็จ!)
 ```
 
-### 💡 เกร็ดความรู้จาก Sequence Diagram นี้:
-1. **Controller ไม่ทำอะไรเลย:** สังเกตว่า Controller แทบไม่ประมวลผลอะไร มันแค่โยนงานให้ Bus (เบอร์ 2)
-2. **Business Logic ไม่คุยกับ DB โดยตรง:** Handler (เบอร์ 3) คุยกับ **Repository (Port)** เท่านั้น มันไม่รู้เลยด้วยซ้ำว่าข้างล่างใช้ Prisma หรือ Postgres (เบอร์ 8) นี่คือแก่นแท้ของ Hexagonal Architecture!
-3. **ป้องกันระบบค้างด้วย Circuit Breaker:** สังเกตกล่องสีฟ้า (เบอร์ 4-7) ถ้า API ภายนอกล่ม `Opossum` จะตัดบททันที (Fail Fast) ช่วยให้ระบบของเราวิ่งต่อไปบรรทัดที่ 8 ได้ โดยไม่ต้องค้างรอจนหมดเวลา (Timeout)
+### Flow B: การดึงข้อมูลที่มีแคช (Cache Hit & Query Flow)
+**สถานการณ์:** ลูกค้าเรียกดูรายการ Task (`GET /tasks`) ซึ่งข้อมูลนี้เคยถูกดึงไปแล้วเมื่อ 5 วินาทีก่อน
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as 🧑‍💻 Client
+    participant Cache as 🧠 Cache Interceptor
+    participant Ctrl as 👩‍💼 Controller
+    participant Bus as 🔀 Query Bus
+    participant H as ⚙️ GetTasksHandler
+    participant Repo as 🔌 PrismaAdapter
+    
+    C->>Cache: GET /tasks
+    
+    alt ⚡ จำได้ (มีใน Redis Cache)
+        Cache-->>C: 📩 ส่งข้อมูลกลับทันที (ไม่กวน Controller เลย)
+    else 🐢 จำไม่ได้ (แคชหมดอายุ / ไม่มีแคช)
+        Cache->>Ctrl: ปล่อยผ่านให้เข้าสู่ระบบ
+        Ctrl->>Bus: โยนคำสั่ง (GetTasksQuery)
+        Bus->>H: จ่ายงานให้ Handler
+        
+        H->>Repo: findAll()
+        Repo-->>H: ข้อมูล Tasks
+        
+        H-->>Bus: งานเสร็จแล้ว
+        Bus-->>Ctrl: ส่งข้อมูลกลับ
+        Ctrl->>Cache: ขอส่งให้ลูกค้า
+        
+        Note right of Cache: 🧠 แอบจดจำข้อมูลลง Redis (TTL 60 วิ)
+        Cache-->>C: 📩 200 OK (ส่งข้อมูลรอบแรก)
+    end
+```
+
+### Flow C: การจัดการเมื่อเจอข้อผิดพลาด (Exception Handling)
+**สถานการณ์:** ลูกค้าพยายามค้นหา Task ที่ไม่มีอยู่จริงในฐานข้อมูล
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as 🧑‍💻 Client
+    participant Ctrl as 👩‍💼 Controller
+    participant H as ⚙️ Handler
+    participant Repo as 🔌 PrismaAdapter
+    participant Filter as 🚑 Exception Filter
+    
+    C->>Ctrl: GET /tasks/999
+    Ctrl->>H: ขอข้อมูล Task ID: 999
+    H->>Repo: findById(999)
+    
+    Note right of Repo: ❌ หาไม่เจอใน Database
+    Repo-->>H: return null
+    
+    H-->>Ctrl: 💣 throw NotFoundException("Task not found")
+    
+    Note right of Filter: 🚑 Filter ดักจับ Error ไว้ไม่ให้แอปแครช
+    Ctrl-->>Filter: โยน Exception ให้จัดการ
+    Filter-->>C: 📩 404 Not Found (แปลงเป็น JSON สวยงาม)
+```
