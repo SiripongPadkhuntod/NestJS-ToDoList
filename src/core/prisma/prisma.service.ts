@@ -15,9 +15,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const port = process.env.DB_PORT || '5433';
     const dbName = process.env.DB_NAME || 'phase_one_db';
     const schema = process.env.DB_SCHEMA || 'public';
+    const maxConnections = parseInt(process.env.DB_POOL_MAX || '10', 10);
     
     const connectionString = `postgresql://${user}:${password}@${host}:${port}/${dbName}?schema=${schema}`;
-    const pool = new Pool({ connectionString });
+    const pool = new Pool({ 
+      connectionString,
+      max: maxConnections, // จำกัดจำนวน Connection สูงสุด (Default คือ 10)
+    });
     const adapter = new PrismaPg(pool);
     super({
       adapter,
