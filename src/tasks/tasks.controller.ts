@@ -1,5 +1,8 @@
 // src/tasks/tasks.controller.ts
 import { Controller, Get, Post, Body, Param, ParseIntPipe, Put, Delete, UseGuards, Request } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { GetTasksQuery } from './queries/get-tasks.query';
+import { CreateTaskCommand } from './commands/create-task.command';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -13,14 +16,18 @@ import { User } from '../auth/user.decorator';
 @UseGuards(JwtAuthGuard) // บังคับให้ต้องล็อกอิน (มี Token) ถึงจะเรียก API ในนี้ได้ทั้งหมด
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'ดึงข้อมูล Task ทั้งหมดของตัวเอง' })
   @ApiResponse({ status: 200, description: 'คืนค่าเป็น Array ของ Task', type: [TaskEntity] })
   async getAllTasks(@User('userId') userId: number) {
-    // หัวข้อ 3.2: ใช้ @User() ดึง userId มาตรงๆ เลย
-    return this.tasksService.findAll(userId);
+    // หัวข้อ 3.6 CQRS: ใช้ QueryBus แทนการเรียก Service ตรงๆ
+    return this.queryBus.execute(new GetTasksQuery(userId));
   }
 
   @Get(':id')
@@ -35,7 +42,8 @@ export class TasksController {
   @ApiOperation({ summary: 'สร้าง Task ใหม่' })
   @ApiResponse({ status: 201, description: 'สร้างสำเร็จ จะคืนค่าเป็น Task ที่สร้างใหม่', type: TaskEntity })
   async createTask(@Body() createTaskDto: CreateTaskDto, @User('userId') userId: number) {
-    return this.tasksService.create(createTaskDto, userId);
+    // หัวข้อ 3.6 CQRS: ใช้ CommandBus แทนการเรียก Service ตรงๆ
+    return this.commandBus.execute(new CreateTaskCommand(createTaskDto, userId));
   }
 
   @Put(':id')
