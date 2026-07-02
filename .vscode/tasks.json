@@ -53,9 +53,29 @@
       }
     },
     {
-      "label": "Prisma: DB Push (Sync Schema)",
+      "label": "Prisma: Migrate Dev (Create Migration)",
       "type": "shell",
-      "command": "npx prisma db push",
+      "command": "npx prisma migrate dev",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Prisma: Migrate Deploy (Prod)",
+      "type": "shell",
+      "command": "npx prisma migrate deploy",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Prisma: Seed DB",
+      "type": "shell",
+      "command": "npx prisma db seed",
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
