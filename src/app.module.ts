@@ -25,8 +25,8 @@ import { HttpClientModule } from '@core/http-client/http-client.module';
     // หัวข้อ 3.4 Queue & Redis: ตั้งค่าเชื่อมต่อ Redis สำหรับใช้งาน BullMQ
     BullModule.forRoot({
       connection: {
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
       },
     }),
     // หัวข้อ 3.5 Caching - Redis: ตั้งค่าระบบ Cache ให้ทำงานร่วมกับ Redis
@@ -35,8 +35,8 @@ import { HttpClientModule } from '@core/http-client/http-client.module';
       useFactory: async () => ({
         store: await redisStore({
           socket: {
-            host: 'localhost',
-            port: 6379,
+            host: process.env.REDIS_HOST || 'localhost',
+            port: parseInt(process.env.REDIS_PORT || '6379', 10),
           },
           ttl: 60000, // แคชไว้ 1 นาที (60 วินาที)
         }),

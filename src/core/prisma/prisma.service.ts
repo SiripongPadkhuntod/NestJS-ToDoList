@@ -8,7 +8,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private pool: Pool;
 
   constructor() {
-    const connectionString = process.env.DATABASE_URL || 'postgresql://admin:password123@localhost:5433/phase_one_db?schema=public';
+    // สร้าง Connection String จาก Env Variables แบบแยกชิ้น (Fallback ด้วยค่า Default)
+    const user = process.env.DB_USER || 'admin';
+    const password = process.env.DB_PASSWORD || 'password123';
+    const host = process.env.DB_HOST || 'localhost';
+    const port = process.env.DB_PORT || '5433';
+    const dbName = process.env.DB_NAME || 'phase_one_db';
+    const schema = process.env.DB_SCHEMA || 'public';
+    
+    const connectionString = `postgresql://${user}:${password}@${host}:${port}/${dbName}?schema=${schema}`;
     const pool = new Pool({ connectionString });
     const adapter = new PrismaPg(pool);
     super({

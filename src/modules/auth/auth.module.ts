@@ -16,9 +16,11 @@ import { EVENT_PUBLISHER } from './ports/event-publisher.port';
     UsersModule,
     PassportModule,
     // หัวข้อ 2.8 JWT Authentication: ตั้งค่า JWT Module
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret', // หัวข้อ 2.10: ควรดึงจาก env
-      signOptions: { expiresIn: '60m' },
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET || 'super-secret',
+        signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '60m') as any },
+      }),
     }),
   ],
   providers: [

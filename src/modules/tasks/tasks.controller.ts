@@ -2,6 +2,7 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe, Put, Delete, UseGuards, Request } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetTasksQuery } from './queries/get-tasks.query';
+import { GetTaskInspirationQuery } from './queries/get-task-inspiration.query';
 import { CreateTaskCommand } from './commands/create-task.command';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
@@ -21,6 +22,13 @@ export class TasksController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
+
+  @Get('inspiration')
+  @ApiOperation({ summary: 'ดึงข้อมูลแรงบันดาลใจจากภายนอก (ทดสอบ Circuit Breaker)' })
+  @ApiResponse({ status: 200, description: 'ข้อมูลแรงบันดาลใจ หรือ Fallback' })
+  async getInspiration() {
+    return this.queryBus.execute(new GetTaskInspirationQuery());
+  }
 
   @Get()
   @ApiOperation({ summary: 'ดึงข้อมูล Task ทั้งหมดของตัวเอง' })

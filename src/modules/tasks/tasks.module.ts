@@ -5,12 +5,15 @@ import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { GetTasksHandler } from './handlers/get-tasks.handler';
 import { CreateTaskHandler } from './handlers/create-task.handler';
+import { GetTaskInspirationHandler } from './handlers/get-task-inspiration.handler';
 import { PrismaTaskRepository } from './adapters/prisma-task.repository';
+import { HttpExternalTaskProvider } from './adapters/http-external-task-provider.adapter';
 import { TASK_REPOSITORY } from './ports/task.repository';
+import { EXTERNAL_TASK_PROVIDER } from './ports/external-task-provider.port';
 
 // หัวข้อ 3.6 CQRS: ลงทะเบียน Handlers ทั้งหมด
 export const CommandHandlers = [CreateTaskHandler];
-export const QueryHandlers = [GetTasksHandler];
+export const QueryHandlers = [GetTasksHandler, GetTaskInspirationHandler];
 
 @Module({
   imports: [CqrsModule],
@@ -21,6 +24,10 @@ export const QueryHandlers = [GetTasksHandler];
     {
       provide: TASK_REPOSITORY,
       useClass: PrismaTaskRepository,
+    },
+    {
+      provide: EXTERNAL_TASK_PROVIDER,
+      useClass: HttpExternalTaskProvider,
     },
     ...CommandHandlers,
     ...QueryHandlers,

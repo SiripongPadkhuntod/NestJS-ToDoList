@@ -14,6 +14,15 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  // Enable CORS
+  const corsOrigins = process.env.CORS_ORIGINS 
+    ? process.env.CORS_ORIGINS.split(',') 
+    : '*';
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+  });
+
   // Enable graceful shutdown
   app.enableShutdownHooks();
 
