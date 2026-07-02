@@ -17,7 +17,7 @@
 
 ## 🛠️ Tech Stack
 
-*   **Framework:** [NestJS](https://nestjs.com/) (TypeScript)
+*   **Framework:** [NestJS](https://nestjs.com/) (TypeScript) - ทำงานอยู่บนเอนจิน **Express** เพื่อความเสถียรและรองรับ Library อย่างครอบคลุม
 *   **Database:** PostgreSQL ผ่าน [Prisma ORM](https://www.prisma.io/)
 *   **Caching & Queue:** Redis (ผ่าน `BullMQ` และ `CacheManager`)
 *   **Storage:** [MinIO](https://min.io/) (S3-Compatible Object Storage)
