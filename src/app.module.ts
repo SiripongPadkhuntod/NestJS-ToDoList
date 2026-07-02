@@ -2,17 +2,17 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config'; // หัวข้อ 2.10: นำเข้า ConfigModule
-import { TasksModule } from './tasks/tasks.module';
-import { UsersModule } from './users/users.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { TasksModule } from '@modules/tasks/tasks.module';
+import { UsersModule } from '@modules/users/users.module';
+import { PrismaModule } from '@core/prisma/prisma.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { AllExceptionsFilter } from '@core/common/filters/all-exceptions.filter';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
-import { NotificationsModule } from './notifications/notifications.module';
-import { MailQueueModule } from './mail-queue/mail-queue.module';
+import { NotificationsModule } from '@background/notifications/notifications.module';
+import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
 
 @Module({
   imports: [
