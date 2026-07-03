@@ -57,6 +57,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        db: 1, // <--- บอกให้ระบบย้ายไปใช้ Logical Database ที่ 1 (db1)
       },
     }),
     // หัวข้อ 3.5 Caching - Redis: ตั้งค่าระบบ Cache ให้ทำงานร่วมกับ Redis
