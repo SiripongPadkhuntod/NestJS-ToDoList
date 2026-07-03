@@ -13,7 +13,7 @@ import { PrismaModule } from '@core/prisma/prisma.module';
     {
       provide: USER_REPOSITORY,
       useClass: PrismaUserRepository,
-    }
+    },
   ],
   exports: [UsersService, USER_REPOSITORY],
 })

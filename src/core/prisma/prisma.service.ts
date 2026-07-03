@@ -1,10 +1,18 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   private pool: Pool;
 
   constructor() {
@@ -16,9 +24,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const dbName = process.env.DB_NAME || 'phase_one_db';
     const schema = process.env.DB_SCHEMA || 'public';
     const maxConnections = parseInt(process.env.DB_POOL_MAX || '10', 10);
-    
+
     const connectionString = `postgresql://${user}:${password}@${host}:${port}/${dbName}?schema=${schema}`;
-    const pool = new Pool({ 
+    const pool = new Pool({
       connectionString,
       max: maxConnections, // จำกัดจำนวน Connection สูงสุด (Default คือ 10)
     });

@@ -8,7 +8,8 @@ export class HttpExternalTaskProvider implements IExternalTaskProvider {
 
   async fetchTaskInspiration(): Promise<any> {
     // ดึง URL จาก .env หรือใช้ค่า Default ถ้าไม่มี
-    const url = process.env.EXTERNAL_INSPIRATION_API_URL || 'https://httpstat.us/500';
-    return this.httpClient.get(url); 
+    const url =
+      process.env.EXTERNAL_INSPIRATION_API_URL || 'https://httpstat.us/500';
+    return this.httpClient.get(url);
   }
 }

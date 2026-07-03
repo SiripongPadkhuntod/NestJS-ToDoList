@@ -1,8 +1,19 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject } from '@nestjs/common';
-import { IUserRepository, USER_REPOSITORY } from '@modules/users/ports/user.repository';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
+import {
+  IUserRepository,
+  USER_REPOSITORY,
+} from '@modules/users/ports/user.repository';
 import type { IUserRepository as IUserRepositoryType } from '@modules/users/ports/user.repository';
 import { AuthRegisterDto, AuthLoginDto } from './dto/auth.dto';
-import { IPasswordHasher, PASSWORD_HASHER } from '@core/security/ports/password-hasher.port';
+import {
+  IPasswordHasher,
+  PASSWORD_HASHER,
+} from '@core/security/ports/password-hasher.port';
 import { ITokenGenerator, TOKEN_GENERATOR } from './ports/token-generator.port';
 import { IEventPublisher, EVENT_PUBLISHER } from './ports/event-publisher.port';
 import type { IPasswordHasher as IPasswordHasherType } from '@core/security/ports/password-hasher.port';
@@ -24,7 +35,7 @@ export class AuthService {
 
   async register(authRegisterDto: AuthRegisterDto) {
     const { email, password } = authRegisterDto;
-    
+
     // Check if user exists
     const existingUser = await this.usersRepository.findByEmail(email);
     if (existingUser) {
@@ -61,13 +72,16 @@ export class AuthService {
     }
 
     // Compare password using port
-    const isPasswordValid = await this.passwordHasher.compare(password, user.password);
+    const isPasswordValid = await this.passwordHasher.compare(
+      password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const payload = { email: user.email, sub: user.id, role: user.role };
-    
+
     // Generate token using port
     return {
       access_token: this.tokenGenerator.generateToken(payload),

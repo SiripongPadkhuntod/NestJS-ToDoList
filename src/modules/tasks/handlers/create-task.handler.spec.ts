@@ -6,7 +6,7 @@ import { TaskModel } from '../domain/task.model';
 
 describe('CreateTaskHandler', () => {
   let handler: CreateTaskHandler;
-  
+
   // Mock Repository: จำลองตัว Database แทนการใช้ Prisma ของจริง
   const mockTaskRepository = {
     createTask: jest.fn(),
@@ -36,14 +36,14 @@ describe('CreateTaskHandler', () => {
     const mockDto = { title: 'Buy milk', description: 'At the supermarket' };
     const mockUserId = '1';
     const command = new CreateTaskCommand(mockDto, mockUserId);
-    
+
     const expectedTask = new TaskModel(
       '100',
       mockDto.title,
       mockDto.description,
       'PENDING',
       new Date(),
-      mockUserId
+      mockUserId,
     );
 
     // จำลองให้ mockTaskRepository คืนค่าเป็น expectedTask เมื่อถูกเรียก
@@ -54,9 +54,12 @@ describe('CreateTaskHandler', () => {
 
     // 3. Assert: ตรวจสอบผลลัพธ์
     // ตรวจสอบว่าถูกเรียกใช้งานด้วย Parameter ที่ถูกต้องหรือไม่
-    expect(mockTaskRepository.createTask).toHaveBeenCalledWith(mockDto, mockUserId);
+    expect(mockTaskRepository.createTask).toHaveBeenCalledWith(
+      mockDto,
+      mockUserId,
+    );
     expect(mockTaskRepository.createTask).toHaveBeenCalledTimes(1);
-    
+
     // ตรวจสอบว่าผลลัพธ์ที่ได้ออกมาตรงกับที่หวังไว้ไหม
     expect(result).toEqual(expectedTask);
     expect(result.id).toBe(100);

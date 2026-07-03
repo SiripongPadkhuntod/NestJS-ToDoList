@@ -26,8 +26,8 @@ async function bootstrap() {
   });
 
   // Enable CORS
-  const corsOrigins = process.env.CORS_ORIGINS 
-    ? process.env.CORS_ORIGINS.split(',') 
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
     : '*';
   app.enableCors({
     origin: corsOrigins,
@@ -38,9 +38,11 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   // เปิดใช้งาน Pipe เพื่อตรวจจับข้อมูล DTO ที่ผิดพลาด
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // ตัดข้อมูลขยะที่ไม่ได้ระบุใน DTO ทิ้งอัตโนมัติ
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // ตัดข้อมูลขยะที่ไม่ได้ระบุใน DTO ทิ้งอัตโนมัติ
+    }),
+  );
 
   // หัวข้อ 3.1: เปิดใช้งาน Interceptor สำหรับจัดรูปแบบ Response ให้เหมือนกันทั้งแอป
   app.useGlobalInterceptors(new TransformInterceptor());
@@ -50,8 +52,8 @@ async function bootstrap() {
     .setTitle('PRJ E-Procurement API')
     .setVersion('1.0')
     .addBearerAuth()
-    .build(); 
-  
+    .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 

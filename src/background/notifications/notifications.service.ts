@@ -11,10 +11,14 @@ export class NotificationsService {
   // หัวข้อ 3.3 Event-Driven: รอรับฟังก์ชันเมื่อมี Event 'user.created' เกิดขึ้น
   @OnEvent('user.created')
   async handleUserCreatedEvent(payload: { userId: string; email: string }) {
-    this.logger.log(`[Event-Driven] 🎉 ได้รับแจ้งเตือนผู้ใช้ใหม่: ${payload.email} (ID: ${payload.userId})`);
-    
+    this.logger.log(
+      `[Event-Driven] 🎉 ได้รับแจ้งเตือนผู้ใช้ใหม่: ${payload.email} (ID: ${payload.userId})`,
+    );
+
     // หัวข้อ 3.4 Queue & Redis: โยนงานส่งอีเมลลงคิว
-    this.logger.log(`[Event-Driven] ➡️ กำลังส่งงานเข้า Queue ให้ Worker ไปทำต่อหลังบ้าน...`);
+    this.logger.log(
+      `[Event-Driven] ➡️ กำลังส่งงานเข้า Queue ให้ Worker ไปทำต่อหลังบ้าน...`,
+    );
     await this.mailQueueService.sendWelcomeEmail(payload.email);
   }
 }

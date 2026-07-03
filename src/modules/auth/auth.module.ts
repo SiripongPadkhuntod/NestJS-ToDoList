@@ -19,12 +19,14 @@ import { EVENT_PUBLISHER } from './ports/event-publisher.port';
     JwtModule.registerAsync({
       useFactory: () => ({
         secret: process.env.JWT_SECRET || 'super-secret',
-        signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN || '60m') as any },
+        signOptions: {
+          expiresIn: (process.env.JWT_EXPIRES_IN || '60m') as any,
+        },
       }),
     }),
   ],
   providers: [
-    AuthService, 
+    AuthService,
     JwtStrategy,
     { provide: TOKEN_GENERATOR, useClass: JwtTokenGenerator },
     { provide: EVENT_PUBLISHER, useClass: NestEventPublisher },

@@ -1,7 +1,10 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { GetTaskInspirationQuery } from '../queries/get-task-inspiration.query';
-import { IExternalTaskProvider, EXTERNAL_TASK_PROVIDER } from '../ports/external-task-provider.port';
+import {
+  IExternalTaskProvider,
+  EXTERNAL_TASK_PROVIDER,
+} from '../ports/external-task-provider.port';
 import type { IExternalTaskProvider as IExternalTaskProviderType } from '../ports/external-task-provider.port';
 
 @QueryHandler(GetTaskInspirationQuery)

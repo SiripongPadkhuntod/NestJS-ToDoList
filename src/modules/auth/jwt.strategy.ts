@@ -13,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  validate(payload: any) {
     // ข้อมูลที่ Return จะถูกแนบไปกับ Request (req.user)
     return { userId: payload.sub, email: payload.email, role: payload.role };
   }

@@ -39,7 +39,7 @@ describe('GetTaskInspirationHandler', () => {
     // 1. Arrange
     const expectedResult = { quote: 'Just do it!', author: 'Nike' };
     mockExternalProvider.fetchTaskInspiration.mockResolvedValue(expectedResult);
-    
+
     const query = new GetTaskInspirationQuery();
 
     // 2. Act
@@ -54,12 +54,14 @@ describe('GetTaskInspirationHandler', () => {
     // 1. Arrange
     const error = new Error('External API is down');
     mockExternalProvider.fetchTaskInspiration.mockRejectedValue(error);
-    
+
     const query = new GetTaskInspirationQuery();
 
     // 2. Act & Assert
     // ใช้คำสั่ง rejects.toThrow เพื่อเช็คว่าพ่น Error ออกมาตามคาดไหม
-    await expect(handler.execute(query)).rejects.toThrow('External API is down');
+    await expect(handler.execute(query)).rejects.toThrow(
+      'External API is down',
+    );
     expect(mockExternalProvider.fetchTaskInspiration).toHaveBeenCalledTimes(1);
   });
 });

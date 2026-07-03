@@ -1,5 +1,11 @@
 // src/app.module.ts
-import { Module, NestModule, MiddlewareConsumer, Logger, OnApplicationShutdown } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  Logger,
+  OnApplicationShutdown,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config'; // หัวข้อ 2.10: นำเข้า ConfigModule
 import { TasksModule } from '@modules/tasks/tasks.module';
 import { UsersModule } from '@modules/users/users.module';
@@ -25,20 +31,23 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
   imports: [
     // หัวข้อ 2.10 Config & Environment Variable: ใช้โหลดตัวแปรจากไฟล์ .env
     ConfigModule.forRoot({ isGlobal: true }),
-    
+
     // Rate Limiting (ป้องกันคนยิง API รัวๆ) - จำกัด x ครั้งต่อ y วินาทีต่อ 1 IP
-    ThrottlerModule.forRoot([{
-      ttl: parseInt(process.env.THROTTLE_TTL_MS || '60000', 10),
-      limit: parseInt(process.env.THROTTLE_LIMIT || '100', 10),
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: parseInt(process.env.THROTTLE_TTL_MS || '60000', 10),
+        limit: parseInt(process.env.THROTTLE_LIMIT || '100', 10),
+      },
+    ]),
 
     // ระบบ Logging ขั้นสูงด้วย Pino (Structured JSON Log)
     PinoLoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL || 'info',
-        transport: process.env.NODE_ENV !== 'production' 
-          ? { target: 'pino-pretty', options: { singleLine: true } }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { singleLine: true } }
+            : undefined,
       },
     }),
 
@@ -50,7 +59,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
       },
     }),
 
-    // หัวข้อ 3.3 Event-Driven: เปิดใช้งานระบบ Event 
+    // หัวข้อ 3.3 Event-Driven: เปิดใช้งานระบบ Event
     EventEmitterModule.forRoot(),
     // หัวข้อ 3.4 Queue & Redis: ตั้งค่าเชื่อมต่อ Redis สำหรับใช้งาน BullMQ
     BullModule.forRoot({
@@ -73,14 +82,14 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
         }),
       }),
     }),
-    TasksModule, 
+    TasksModule,
     UsersModule,
     SecurityModule,
     HttpClientModule,
     StorageModule,
     PrismaModule, // นำแผนก Tasks เข้ามาเชื่อมต่อ (หัวข้อ 1.3)
-    AuthModule, 
-    NotificationsModule, 
+    AuthModule,
+    NotificationsModule,
     MailQueueModule,
     HealthModule,
   ],
@@ -110,10 +119,14 @@ export class AppModule implements NestModule, OnApplicationShutdown {
   }
 
   beforeApplicationShutdown(signal?: string) {
-    this.appLogger.warn(`Received signal ${signal}. Starting Graceful Shutdown...`);
+    this.appLogger.warn(
+      `Received signal ${signal}. Starting Graceful Shutdown...`,
+    );
   }
 
   onApplicationShutdown(signal?: string) {
-    this.appLogger.log(`Graceful Shutdown completed (Signal: ${signal}). Application terminated safely.`);
+    this.appLogger.log(
+      `Graceful Shutdown completed (Signal: ${signal}). Application terminated safely.`,
+    );
   }
 }

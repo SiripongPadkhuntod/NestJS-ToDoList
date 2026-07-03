@@ -5,7 +5,7 @@ export const User = createParamDecorator(
   (data: string | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
-    
+
     // ถ้ามีการระบุชื่อฟิลด์ (เช่น @User('email')) ให้ดึงแค่ฟิลด์นั้น
     // ถ้าไม่ระบุ ให้ดึงมาทั้งก้อน
     return data ? user?.[data] : user;

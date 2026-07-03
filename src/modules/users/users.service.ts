@@ -3,7 +3,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUserRepository, USER_REPOSITORY } from './ports/user.repository';
 import type { IUserRepository as IUserRepositoryType } from './ports/user.repository';
-import { IPasswordHasher, PASSWORD_HASHER } from '@core/security/ports/password-hasher.port';
+import {
+  IPasswordHasher,
+  PASSWORD_HASHER,
+} from '@core/security/ports/password-hasher.port';
 import type { IPasswordHasher as IPasswordHasherType } from '@core/security/ports/password-hasher.port';
 import { UserModel } from './domain/user.model';
 
@@ -17,7 +20,9 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserModel> {
-    const hashedPassword = await this.passwordHasher.hash(createUserDto.password);
+    const hashedPassword = await this.passwordHasher.hash(
+      createUserDto.password,
+    );
     return this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
@@ -38,10 +43,12 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserModel> {
     await this.findOne(id); // ตรวจสอบว่ามีอยู่จริง
-    
+
     // ถ้ามีการเปลี่ยนรหัสผ่าน ให้เข้ารหัสใหม่
     if (updateUserDto.password) {
-      updateUserDto.password = await this.passwordHasher.hash(updateUserDto.password);
+      updateUserDto.password = await this.passwordHasher.hash(
+        updateUserDto.password,
+      );
     }
 
     return this.userRepository.update(id, updateUserDto);
@@ -52,4 +59,3 @@ export class UsersService {
     return this.userRepository.remove(id);
   }
 }
-

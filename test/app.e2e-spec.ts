@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, VersioningType, ValidationPipe } from '@nestjs/common';
+import {
+  INestApplication,
+  VersioningType,
+  ValidationPipe,
+} from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
@@ -43,7 +47,7 @@ describe('App & Health E2E', () => {
       .expect((res) => {
         // คาดหวังว่า Response Body ต้องมีคำว่า ok (ตามรูปแบบของ Terminus)
         // กรณีถ้า TransformInterceptor ทำงาน มันจะอยู่ใน .data แต่ถ้าไม่ มันจะอยู่ชั้นนอกสุด
-        const payload = res.body.data || res.body; 
+        const payload = res.body.data || res.body;
         expect(payload.status).toBe('ok');
         expect(payload.info.database.status).toBe('up');
       });

@@ -2,6 +2,11 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import type { SentMessageInfo } from 'nodemailer';
+
+interface WelcomeEmailJobData {
+  email: string;
+}
 
 @Processor('mail')
 export class MailQueueProcessor extends WorkerHost {
@@ -22,23 +27,32 @@ export class MailQueueProcessor extends WorkerHost {
         port: 587,
         secure: false, // true for 465, false for other ports
         auth: {
-          user: testAccount.user, 
-          pass: testAccount.pass, 
+          user: testAccount.user,
+          pass: testAccount.pass,
         },
       });
-      this.logger.log(`[Queue Worker] ระบบจำลองอีเมล Ethereal พร้อมแล้ว! (User: ${testAccount.user})`);
+      this.logger.log(
+        `[Queue Worker] ระบบจำลองอีเมล Ethereal พร้อมแล้ว! (User: ${testAccount.user})`,
+      );
     } catch (error) {
-      this.logger.error(`[Queue Worker] ไม่สามารถสร้าง Ethereal Mail ได้: ${error.message}`);
+      const err = error as Error;
+      this.logger.error(
+        `[Queue Worker] ไม่สามารถสร้าง Ethereal Mail ได้: ${err.message}`,
+      );
     }
   }
 
-  async process(job: Job<any, any, string>): Promise<any> {
-    this.logger.log(`[Queue Worker] กำลังเริ่มประมวลผลงานรหัส: ${job.id}`);
-    
+  async process(job: Job<WelcomeEmailJobData, any, string>): Promise<any> {
+    this.logger.log(
+      `[Queue Worker] กำลังเริ่มประมวลผลงานรหัส: ${job.id ?? 'unknown'}`,
+    );
+
     switch (job.name) {
       case 'welcome-email':
-        this.logger.log(`[Queue Worker] กำลังเตรียมส่งอีเมลต้อนรับไปยัง: ${job.data.email}`);
-        
+        this.logger.log(
+          `[Queue Worker] กำลังเตรียมส่งอีเมลต้อนรับไปยัง: ${job.data.email}`,
+        );
+
         if (!this.transporter) {
           throw new Error('ระบบส่งเมลยังไม่พร้อมทำงาน');
         }
@@ -70,20 +84,26 @@ export class MailQueueProcessor extends WorkerHost {
           const info = await this.transporter.sendMail({
             from: '"PRJ E-Procurement" <noreply@prj-corp.com>', // ผู้ส่งที่เป็นทางการ
             to: job.data.email,
-            subject: 'Account Registration Successful - PRJ E-Procurement', 
-            text: `Dear ${job.data.email}, Welcome to the PRJ E-Procurement System. Your account has been successfully created.`, 
-            html: htmlTemplate, 
+            subject: 'Account Registration Successful - PRJ E-Procurement',
+            text: `Dear ${job.data.email}, Welcome to the PRJ E-Procurement System. Your account has been successfully created.`,
+            html: htmlTemplate,
           });
 
-          this.logger.log(`[Queue Worker] ส่งอีเมลสำเร็จ! Message ID: ${info.messageId}`);
-          
+          this.logger.log(
+            `[Queue Worker] ส่งอีเมลสำเร็จ! Message ID: ${info.messageId}`,
+          );
+
           // ไฮไลท์ของ Ethereal: เราสามารถดูอีเมลที่เราเพิ่งส่งไปได้ผ่าน URL นี้!
           const previewUrl = nodemailer.getTestMessageUrl(info); // .getTestMessageUrl() เป็นฟังก์ชันของ Ethereal ที่ใช้สำหรับดูอีเมลที่ส่งไป สำคัญมากเวลาทดสอบ
-          this.logger.log(`[Queue Worker] คลิกลิงก์นี้เพื่อดูอีเมลที่ส่งไป (จำลอง): ${previewUrl}`);
-          
+          if (previewUrl) {
+            this.logger.log(
+              `[Queue Worker] คลิกลิงก์นี้เพื่อดูอีเมลที่ส่งไป (จำลอง): ${previewUrl}`,
+            );
+          }
         } catch (error) {
-          this.logger.error(`[Queue Worker] ส่งอีเมลล้มเหลว: ${error.message}`);
-          throw error; // โยน Error กลับไปให้คิว (BullMQ) จัดการ (อาจจะ retry ใหม่)
+          const err = error as Error;
+          this.logger.error(`[Queue Worker] ส่งอีเมลล้มเหลว: ${err.message}`);
+          throw err; // โยน Error กลับไปให้คิว (BullMQ) จัดการ (อาจจะ retry ใหม่)
         }
         break;
       default:
@@ -91,4 +111,3 @@ export class MailQueueProcessor extends WorkerHost {
     }
   }
 }
-  

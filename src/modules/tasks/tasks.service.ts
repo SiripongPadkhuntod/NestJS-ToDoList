@@ -1,5 +1,10 @@
 // src/tasks/tasks.service.ts
-import { Injectable, NotFoundException, UnauthorizedException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  Inject,
+} from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ITaskRepository, TASK_REPOSITORY } from './ports/task.repository';
@@ -19,7 +24,7 @@ export class TasksService {
 
   async findOne(id: string, userId: string): Promise<TaskModel> {
     const task = await this.taskRepository.findOne(id);
-    
+
     if (!task) {
       throw new NotFoundException(`ไม่พบ Task หมายเลข ${id}`);
     }
@@ -29,11 +34,18 @@ export class TasksService {
     return task;
   }
 
-  async create(createTaskDto: CreateTaskDto, userId: string): Promise<TaskModel> {
+  async create(
+    createTaskDto: CreateTaskDto,
+    userId: string,
+  ): Promise<TaskModel> {
     return this.taskRepository.createTask(createTaskDto, userId);
   }
 
-  async update(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<TaskModel> {
+  async update(
+    id: string,
+    updateTaskDto: UpdateTaskDto,
+    userId: string,
+  ): Promise<TaskModel> {
     await this.findOne(id, userId); // Check if task exists & belongs to user
     return this.taskRepository.updateTask(id, updateTaskDto);
   }

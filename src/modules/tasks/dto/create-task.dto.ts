@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTaskDto {
   @IsString()
-  @IsNotEmpty() 
+  @IsNotEmpty()
   @MinLength(3, { message: 'ชื่อ Task ต้องมีความยาวอย่างน้อย 3 ตัวอักษร' })
   @ApiProperty({
     example: 'Task 1',

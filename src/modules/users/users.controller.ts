@@ -1,6 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, ClassSerializerInterceptor, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+  Request,
+} from '@nestjs/common';
 import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -32,17 +49,22 @@ export class UsersController {
   @Get()
   async findAll() {
     const users = await this.usersService.findAll();
-    return users.map(user => new UserEntity(user));
+    return users.map((user) => new UserEntity(user));
   }
 
   // เส้นทางดึงข้อมูลตัวเอง (ต้องอยู่ก่อน :id ไม่งั้น 'me' จะมองเป็น :id)
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'ดึงข้อมูลโปรไฟล์ของตัวเอง' })
-  @ApiResponse({ status: 200, description: 'คืนค่าข้อมูลผู้ใช้งานที่กำลังล็อกอินอยู่' })
+  @ApiResponse({
+    status: 200,
+    description: 'คืนค่าข้อมูลผู้ใช้งานที่กำลังล็อกอินอยู่',
+  })
   getProfile(@User('userId') userId: string) {
     // หัวข้อ 3.2: ใช้ Custom Decorator @User() แทน @Request()
-    return this.usersService.findOne(userId).then(user => new UserEntity(user));
+    return this.usersService
+      .findOne(userId)
+      .then((user) => new UserEntity(user));
   }
 
   // หัวข้อ 2.7, 2.8 และ 2.9: ป้องกัน Route + เช็ค Role ว่าต้องเป็น ADMIN ถึงจะดึงดูข้อมูลคนอื่นได้

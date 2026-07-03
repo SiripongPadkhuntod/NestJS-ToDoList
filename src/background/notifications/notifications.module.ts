@@ -4,6 +4,6 @@ import { MailQueueModule } from '@background/mail-queue/mail-queue.module';
 
 @Module({
   imports: [MailQueueModule],
-  providers: [NotificationsService]
+  providers: [NotificationsService],
 })
 export class NotificationsModule {}

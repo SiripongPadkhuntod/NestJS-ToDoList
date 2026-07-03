@@ -28,28 +28,38 @@ export class MinioStorageAdapter implements IFileStorageProvider, OnModuleInit {
         this.logger.log(`Bucket '${this.bucketName}' created successfully.`);
       }
     } catch (error) {
-      this.logger.error(`Unable to verify or connect to MinIO bucket: ${error.message}`);
+      this.logger.error(
+        `Unable to verify or connect to MinIO bucket: ${error.message}`,
+      );
     }
   }
 
-  async uploadFile(fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> {
+  async uploadFile(
+    fileBuffer: Buffer,
+    fileName: string,
+    mimeType: string,
+  ): Promise<string> {
     const ext = fileName.split('.').pop();
     const uniqueFileName = `${crypto.randomUUID()}.${ext}`;
-    
+
     await this.minioClient.putObject(
       this.bucketName,
       uniqueFileName,
       fileBuffer,
       fileBuffer.length,
-      { 'Content-Type': mimeType }
+      { 'Content-Type': mimeType },
     );
-    
+
     return uniqueFileName;
   }
 
   async getFileUrl(objectName: string): Promise<string> {
     // สร้าง Signed URL ที่มีอายุการใช้งาน 1 ชั่วโมง (3600 วินาที)
-    return await this.minioClient.presignedGetObject(this.bucketName, objectName, 3600);
+    return await this.minioClient.presignedGetObject(
+      this.bucketName,
+      objectName,
+      3600,
+    );
   }
 
   async deleteFile(objectName: string): Promise<void> {
