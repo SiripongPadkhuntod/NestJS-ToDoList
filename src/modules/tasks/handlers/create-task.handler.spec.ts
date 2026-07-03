@@ -62,7 +62,7 @@ describe('CreateTaskHandler', () => {
 
     // ตรวจสอบว่าผลลัพธ์ที่ได้ออกมาตรงกับที่หวังไว้ไหม
     expect(result).toEqual(expectedTask);
-    expect(result.id).toBe(100);
+    expect(result.id).toBe('100');
     expect(result.title).toBe('Buy milk');
   });
 });
